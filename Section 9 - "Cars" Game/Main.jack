@@ -1,0 +1,31 @@
+/** Main class */
+class Main {
+
+    /** Main function */
+    function void main() {
+
+        var StartWindow start;
+        var int exitCode;
+        var Game game;
+        
+        let start = StartWindow.new();
+
+        while(true) {
+
+            let exitCode = start.showWindow();
+
+            if(exitCode = 0) {      // if 'Enter' was pressed - start a new game
+                let game = Game.new();
+                do game.run();
+            }
+
+            else {                  // if 'Esc' was pressed - terminate the program
+                do Screen.clearScreen();
+                do start.dispose();
+                return;
+            }
+        }
+
+        return;
+    }
+}

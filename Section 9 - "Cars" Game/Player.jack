@@ -1,0 +1,105 @@
+/** Handles a game player */
+class Player {
+
+    field int xInitialPos, yInitialPos, yCurrentPos, radius, score;
+
+    /** Constructs a new player given its initial position and draws it on the screen */
+    constructor Player new(int Ix, int Iy) {
+
+        let xInitialPos = Ix;
+        let yInitialPos = Iy;
+        let yCurrentPos = yInitialPos;
+        let radius = 10;        // fixed value, can be re-configured
+        let score = 0;
+
+        /* draw the player */
+        do Screen.setColor(true);
+        do Screen.drawCircle(xInitialPos, yInitialPos, radius);
+
+        return this;
+    }
+
+    /** Disposes this player */
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    /** Moves this player up by one pixel */
+    method int moveUp() {
+
+        /* remove the player in its current position from the screen */
+        do Screen.setColor(false);
+        do Screen.drawCircle(xInitialPos, yCurrentPos, radius);
+
+        if(~(yCurrentPos = radius)) {       // check if the player didn't reach the top of the screen
+            let yCurrentPos  = yCurrentPos - 1;
+            /* draw the player in its new position */
+            do Screen.setColor(true);
+            do Screen.drawCircle(xInitialPos, yCurrentPos, radius);
+        }
+
+        else {      // the player reached the top of the screen
+            do moveToBeginning();
+            let score = score + 1;
+            return 1;
+        }
+
+        return 0;   // the player didn't reach the top of the screen
+    }
+
+    /** Moves this player down by one pixel */
+    method void moveDown() {
+
+        if(~(yCurrentPos > yInitialPos)) {      // if the player is positioned higher than its initial position
+
+            /* remove the player in its current position from the screen */
+            do Screen.setColor(false);
+            do Screen.drawCircle(xInitialPos, yCurrentPos, radius);
+
+            let yCurrentPos  = yCurrentPos + 1;
+
+            /* draw the player in its new position */
+            do Screen.setColor(true);
+            do Screen.drawCircle(xInitialPos, yCurrentPos, radius);
+        }
+
+        return;
+    }
+
+    /** Moves this player back to initial position */
+    method void moveToBeginning() {
+
+        /* remove the player in its current position from the screen */
+        do Screen.setColor(false);
+        do Screen.drawCircle(xInitialPos, yCurrentPos, radius);
+
+        let yCurrentPos  = yInitialPos;
+
+        /* draw the player in its new position */
+        do Screen.setColor(true);
+        do Screen.drawCircle(xInitialPos, yCurrentPos, radius);
+
+        return;
+    }
+
+    /** Gets the current x-axis position of this player */
+    method int getXCurrentPos() {
+        return xInitialPos;
+    }
+
+    /** Gets the current y-axis position of this player */
+    method int getYCurrentPos() {
+        return yCurrentPos;
+    }
+
+    /** Gets the radius of this player */
+    method int getRadius() {
+        return radius;
+    }
+
+    /** Gets the score of this player */
+    method int getScore() {
+        return score;
+    }
+}

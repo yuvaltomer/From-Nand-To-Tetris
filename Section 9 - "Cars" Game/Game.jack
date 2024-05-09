@@ -1,0 +1,194 @@
+/** Handles a complete game with all its components and functionality */
+class Game {
+
+    field Player player1, player2;
+    field int numberOfCars;
+    field Array cars;
+
+    /** Constructs a new game with two players and an array of cars */
+    constructor Game new() {
+
+        var int i, direction, carRadius;
+
+        do Screen.clearScreen();
+
+        let player1 = Player.new(120, 240);
+        let player2 = Player.new(388, 240);
+        let numberOfCars = 18;  // fixed value, can be re-configured
+        let cars = Array.new(numberOfCars);
+        let carRadius = 3;      // fixed value, can be re-configured
+
+        /* Cars are created symmetrically (with respect to the middle of the screen horizontally) */
+        /* Half of the cars go from left to right and the other half go from right to left */
+        /* Initial positions and speeds were manually selected to create challenge, but can be re-configured */
+        let cars[0]  = Car.new(254 + 128, 153, 1, 0, carRadius);
+        let cars[1]  = Car.new(254 + 151, 42,  2, 0, carRadius);
+        let cars[2]  = Car.new(254 + 208, 203, 2, 0, carRadius);
+        let cars[3]  = Car.new(254 + 117, 187, 1, 0, carRadius);
+        let cars[4]  = Car.new(254 + 177, 51,  1, 0, carRadius);
+        let cars[5]  = Car.new(254 + 120, 102, 2, 0, carRadius);
+        let cars[6]  = Car.new(254 + 206, 117, 1, 0, carRadius);
+        let cars[7]  = Car.new(254 + 32,  175, 1, 0, carRadius);
+        let cars[8]  = Car.new(254 + 198, 75 , 2, 0, carRadius);
+
+        let cars[9]  = Car.new(254 - 128, 153, 1, 1, carRadius);
+        let cars[10] = Car.new(254 - 151, 42,  2, 1, carRadius);
+        let cars[11] = Car.new(254 - 208, 203, 2, 1, carRadius);
+        let cars[12] = Car.new(254 - 117, 187, 1, 1, carRadius);
+        let cars[13] = Car.new(254 - 177, 51,  1, 1, carRadius);
+        let cars[14] = Car.new(254 - 120, 102, 2, 1, carRadius);
+        let cars[15] = Car.new(254 - 206, 117, 1, 1, carRadius);
+        let cars[16] = Car.new(254 - 32,  175, 1, 1, carRadius);
+        let cars[17] = Car.new(254 - 100, 198, 2, 1, carRadius);
+
+        return this;
+    }
+
+    /** Disposes all the object this game uses, and the game itself */
+    method void dispose() {
+
+        var int i;
+        var Car selectedCar;
+
+        do player1.dispose();
+        do player2.dispose();
+
+        let i = 0;
+        while(i < numberOfCars) {
+            let selectedCar = cars[i];
+            do selectedCar.dispose();
+            let i = i + 1;
+        }
+
+        do cars.dispose();
+        do Memory.deAlloc(this);
+
+        return;
+    }
+
+    /** Calls Car.moveCar() for each of the Car objects in cars array */
+    method void moveAllCars() {
+
+        var Car selectedCar;
+        var int i;
+
+        let i = 0;
+        while(i < numberOfCars) {
+            let selectedCar = cars[i];
+            do selectedCar.moveCar();
+            let i = i + 1;
+        }
+
+        return;
+    }
+
+    /** For each Car object in cars array, checks if Player p hit the car */
+    method boolean checkIfHit(Player p) {
+
+        var Car selectedCar;
+        var int playerRadius, carRadius, minDistance, xPlayerPos, yPlayerPos, xCarPos, yCarPos, distance, i;
+
+        let playerRadius = p.getRadius();
+        let selectedCar = cars[0];
+        let carRadius = selectedCar.getRadius();
+        let minDistance = playerRadius + carRadius;     // any distance < minDistance means there is a hit
+        let xPlayerPos = p.getXCurrentPos();
+        let yPlayerPos = p.getYCurrentPos();
+
+        let i = 0;
+        while(i < numberOfCars) {
+            let selectedCar = cars[i];
+            let xCarPos = selectedCar.getXCurrentPos();
+            let yCarPos = selectedCar.getYCurrentPos();
+
+            if(Math.abs(xPlayerPos - xCarPos) < minDistance) {      // these conditions are used to limit calls to Utils.distance in order
+                if(Math.abs(yPlayerPos - yCarPos) < minDistance) {  // to avoid inaccuarcies when unnecessarily dealing with big numbers
+                    let distance = Utils.distance(xPlayerPos, yPlayerPos, xCarPos, yCarPos);
+                    if(distance < minDistance) {
+                        return true;
+                    }
+                }
+            }
+
+            let i = i + 1;
+        }
+
+        return false;       // no car was hit
+    }
+
+    /** Handles all the events of this game repeatedly until game is stopped */
+    method void run() {
+
+        var char key;   // the key currently pressed by the user
+        var boolean exit;
+        var int scoreUp1, scoreUp2;
+
+        let key = 0;
+        let exit = false;
+
+        /* initialize scores display */
+        do Output.moveCursor(0, 0);
+        do Output.printString("Player 1: 0");
+        do Output.moveCursor(0, 51);
+        do Output.printString("Player 2: 0");
+
+        /* do repeatedly until game is stopped by the user */
+        while(~exit) {
+
+            let scoreUp1 = 0;
+            let scoreUp2 = 0;
+
+            let key = Keyboard.keyPressed();
+
+            if(key = 87) {      // if 'W' is pressed
+                let scoreUp1 = player1.moveUp();
+            }
+
+            /* update displayed score of player 1 if it was increased */
+            if(~(scoreUp1 = 0)) {
+                do Output.moveCursor(0, 0);
+                do Output.printString("Player 1: ");
+                do Output.printInt(player1.getScore());
+            }
+
+            if(key = 83) {      // if 'S' is pressed
+                do player1.moveDown();
+            }
+
+            if(key = 131) {     // if arrow-up is pressed
+                let scoreUp2 = player2.moveUp();
+            }
+
+            /* update displayed score of player 2 if it was increased */
+            if(~(scoreUp2 = 0)) {
+                do Output.moveCursor(0, 51);
+                do Output.printString("Player 2: ");
+                do Output.printInt(player2.getScore());
+            }
+
+            if(key = 133) {     // if arrow-down is pressed
+                do player2.moveDown();
+            }
+
+            if(key = 81) {      // if 'Q' is pressed
+                let exit = true;
+                do Screen.clearScreen();
+                do dispose();
+            }
+
+            do Sys.wait(5);     // make the player moves more subtle
+
+            do moveAllCars();
+
+            if(checkIfHit(player1)) {
+                do player1.moveToBeginning();
+            }
+
+            if(checkIfHit(player2)) {
+                do player2.moveToBeginning();
+            }
+        }
+        
+        return;
+    }
+}
